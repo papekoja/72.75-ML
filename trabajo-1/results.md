@@ -22,4 +22,4 @@ Los hombres tienen una mediana más alta y una diferencia mucho mayor entre ello
 El RIC de los hombres y la mediana son marginalmente más altos que los de las mujeres.
 
 ## 4
-![Alcoho segun calorias](.\Plots\Alcoho segun calorias.png)
+![Alcoho segun calorias](.\Plots\Alcoho_segun_calorias.jpg)
