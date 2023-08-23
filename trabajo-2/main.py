@@ -5,34 +5,6 @@ SEPARATORS = [',', '.', ':', '\'', '\"',
               "?", "!", "¡", "¿", "(", ")", "[", "]"]
 
 
-class NaiveClassifier:
-    def __init__(self, _features: np.ndarray, _classes: np.ndarray):
-        self.features = _features  # 2 dimensional matrix of boolean values  n x m
-        self.classes = _classes  # 1 dimensional matrix of integer values  n x 1
-        self.unique_values_classes, self.classes_counts = np.unique(self.classes, return_counts=True)
-        print("classes:")
-        print(self.classes)
-        print("\nfeatures")
-        print(self.features)
-
-        self._bayes_learning_vj()
-
-    @staticmethod
-    def _relative_frequency_laplace(occurrences: int, total: int, nr_of_classes: int = 2):
-        return float(occurrences + 1) / float(total + nr_of_classes)
-
-    def _bayes_learning_ai_vj(self) -> np.ndarray:
-        pass
-
-    def _bayes_learning_vj(self):
-        self.vj = np.zeros((len(self.unique_values_classes), 1))
-        print(self.vj)
-        for i, _zip in enumerate(zip(self.unique_values_classes, self.classes_counts)):
-            self.vj[i] = self._relative_frequency_laplace(_zip[1], len(self.classes),
-                                                          len(self.unique_values_classes))
-
-
-
 class TwoWayDict:
     def __init__(self, word_list: []):
         self.words = word_list
@@ -51,6 +23,54 @@ class TwoWayDict:
 
     def __len__(self):
         return len(self.words)
+
+
+class NaiveClassifier:
+    def __init__(self, _features: np.ndarray, _classes: np.ndarray):
+        print(_features.shape)
+        self.features = _features  # 2 dimensional matrix of boolean values  n x m
+        self.classes = _classes  # 1 dimensional matrix of integer values  n x 1
+        self.unique_values_classes, self.classes_counts = np.unique(self.classes, return_counts=True)
+        self._bayes_learning_vj()
+
+    @staticmethod
+    def _relative_frequency_laplace(occurrences: int, total: int, nr_of_classes: int = 2):
+        return float(occurrences + 1) / float(total + nr_of_classes)
+
+    # the class index identifies the class in the array of unique classes
+    # feature value is the value of the feature we are evaluating for, in our case its either true or false
+    # feature index is the index of the column of features
+    def _bayes_learning_ai_vj(self, index_of_class: int, feature_value: bool, feature_index: int) -> np.ndarray:
+        _class = self.unique_values_classes[index_of_class]
+        _sum_occurrences = 0
+        for x in range(self.features.shape[0]):
+            if self.features[x, feature_index] == int(feature_value) and self.classes[x][0] == _class:
+                _sum_occurrences += 1
+        return _sum_occurrences / self.classes_counts[index_of_class]
+
+    def evaluate(self, features_in: np.ndarray):
+
+        score = np.zeros((len(self.unique_values_classes)))
+
+        sum_results = 0
+        for class_index in range(len(score)):
+            score[class_index] = 1
+            for feature_index in range(self.features.shape[1]):
+                score[class_index] *= self._bayes_learning_ai_vj(class_index, features_in[feature_index], feature_index)
+            score[class_index] *= self.vj[class_index]
+            sum_results += score[class_index]
+
+        for x in range(len(score)):
+            print(f"{self.unique_values_classes[x]} has a probability of {score[x] / sum_results}")
+
+    # todo laplace correction for the first task
+    def _bayes_learning_vj(self):
+        self.vj = np.zeros((len(self.unique_values_classes)))
+        print(self.vj)
+        for i, _zip in enumerate(zip(self.unique_values_classes, self.classes_counts)):
+            self.vj[i] = self._relative_frequency_laplace(_zip[1], len(self.classes),
+                                                          len(self.unique_values_classes))
+        print("vj:" + str(self.vj))
 
 
 def row_to_word_arr(r: str) -> []:
@@ -101,3 +121,5 @@ if __name__ == '__main__':
 
     classifier = NaiveClassifier(df[["scones", "cerveza", "wiskey", "avena", "futbol"]].to_numpy(),
                                  df[["Nacionalidad"]].to_numpy())
+
+    print(classifier.evaluate(np.array([1, 0, 1, 1, 0])))
