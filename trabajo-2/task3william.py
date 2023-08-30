@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Replace 'data.csv' with the actual path to your CSV file
-csv_file_path = 'trabajo-2/3-binary(TP1).csv'
+csv_file_path = '../trabajo-3/data.csv'
 
 # Read the CSV file into a DataFrame
 data_df = pd.read_csv(csv_file_path)
