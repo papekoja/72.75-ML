@@ -20,5 +20,4 @@ p_not_admitted_given_rank_1 = total_not_admitted_given_rank_1 / total_rank_1
 # Apply Bayes' theorem
 p_rank_1_given_not_admitted = (p_not_admitted_given_rank_1 * p_rank_1) / p_not_admitted
 
-
 print(f'P(rank=1|not admitted) = {p_rank_1_given_not_admitted}')
