@@ -12,10 +12,8 @@ def loadFile(filename: str):
 
     return aList
 
-
-if __name__ == '__main__':
-
-    # confusion matrix
+def subtask_1_2_3():
+  # confusion matrix
     file_name = "90-Deportes-Salud-Ciencia y Tecnologia-Entretenimiento.json"
     data = loadFile(file_name)
     classes_amount = len(data[0][0])
@@ -107,3 +105,54 @@ if __name__ == '__main__':
     fig.tight_layout()
     plt.savefig(f'ConfusionMatrix-{file_name}.png', dpi=300)
     plt.show()
+
+
+def _roc(acceptance_threshold: float, data, category_to_analyse: str) -> tuple:
+    true_positives = 0 # verdadero postive vp
+    true_negative = 0 # verdadero negative vn
+
+    false_positive = 0 # falso positive fp
+    false_negative = 0 # falso negativo fn
+
+    for d in data:
+        result, highest_cat, category = d
+        predicted_percentage = result[category_to_analyse]
+        if (predicted_percentage > acceptance_threshold): #positive prediccion
+            if (category == category_to_analyse):# real positive
+                true_positives += 1
+            else: # false positive
+                false_positive += 1
+        else: #negative prediccion
+            if (category == category_to_analyse):# real positive
+                false_negative += 1
+            else: # false positive
+                true_negative += 1
+                
+    TVP = true_positives / (true_positives + false_negative)
+    TFP = false_positive / (false_positive + true_negative)
+    return TVP,TFP
+
+
+
+def subtask_roc(file_name : str, samples: int):
+    data = loadFile(file_name)
+
+
+    categories = list(data[0][0].keys())
+    for category in categories:
+        results_TVP = []
+        results_TFP = []
+        for i in range(samples + 1):
+            p = i / samples
+            TVP,TFP = _roc(p,data,category)
+            results_TVP.append(TVP)
+            results_TFP.append(TFP)    
+
+        print(category)
+        plt.plot(results_TFP,results_TVP, label = category)
+    plt.legend(loc="lower right")
+    plt.show()
+
+if __name__ == '__main__':
+    # subtask_1_2_3()
+    subtask_roc("80-Deportes-Salud-Ciencia y Tecnologia-Entretenimiento.json", 100)
