@@ -89,7 +89,7 @@ if __name__ == '__main__':
     df = convert('binary.csv')
     df = discretize(df)
     pb1 = probabilidad(df)
-    pb2 = probabilitad2(df)
+    
     #sin discretizar
     '''
     

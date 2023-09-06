@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import threading
+import json
 
 SEPARATORS = [',', '.', ':', '\'', '\"',
               "?", "!", "¡", "¿", "(", ")", "[", "]"]
@@ -87,7 +88,7 @@ class NaiveClassifier:
         last_update = 0
         for f in range(self.features.shape[1]):
             temp = f / self.features.shape[1]
-            if (temp - last_update) > 0.01:
+            if (temp - last_update) > 0.05:
                 last_update = temp
                 print(f"|{c}|", end="")
             self.ai_vj[c, f, 0] = self._bayes_learning_ai_vj_mask(c, f, False)
@@ -112,14 +113,13 @@ class NaiveClassifier:
 
         print("completed precalculation")
 
-    # has to be super optimized
     def evaluate(self, features_in: np.ndarray) -> dict:
 
         score = np.zeros((len(self.unique_values_classes)))
 
         sum_results = 0
         for class_index in range(len(score)):
-            print("analyzing class: " + str(class_index))
+            # print("analyzing class: " + str(class_index))
             score[class_index] = 1
             for feature_index in range(self.features.shape[1]):
                 score[class_index] *= self.ai_vj[class_index, feature_index, features_in[feature_index]]
@@ -128,10 +128,10 @@ class NaiveClassifier:
 
         results_ = dict()
         for x in range(len(score)):
-            results_[self.unique_values_classes[x]] = score[x] / sum_results
-            print(
-                f"'{self.classes_int_dict.get_word_at(int(self.unique_values_classes[x]))}' has a probability of {score[x]} and a normalized "
-                f"portability of:  {score[x] / sum_results}")
+            results_[self.classes_int_dict.get_word_at(int(self.unique_values_classes[x]))] = score[x] / sum_results
+            # print(
+            #     f"'{self.classes_int_dict.get_word_at(int(self.unique_values_classes[x]))}' has a probability of {score[x]} and a normalized "
+            #     f"portability of:  {score[x] / sum_results}")
 
         return results_
 
@@ -184,45 +184,146 @@ def dataframe_to_word_matrix(df_, word_array: TwoWayDict) -> np.ndarray:
 # features:
 
 
+def get_highest_score(scores: dict):
+    res_highest = ""
+    score_highest = 0
+    for k in scores.keys():
+        if scores[k] > score_highest:
+            res_highest = k
+            score_highest = scores[k]
+    return res_highest
+
+
 def task_1():
     df = pd.read_excel('PreferenciasBritanicos.xlsx')
 
     classifier = NaiveClassifier(df[["scones", "cerveza", "wiskey", "avena", "futbol"]].to_numpy(),
                                  df[["Nacionalidad"]].to_numpy())
 
-    classifier.evaluate(np.array([1, 0, 1, 1, 0]))
-    classifier.evaluate(np.array([0, 1, 1, 0, 1]))
+    print(classifier.evaluate(np.array([1, 0, 1, 1, 0])))
+    print(classifier.evaluate(np.array([0, 1, 1, 0, 1])))
 
 
-def task_2():
-    selected_categories = ['Internacional',
-                           'Nacional',
-                           # 'Destacadas',
-                           'Deportes',
-                           'Salud',
-                           # 'Ciencia y Tecnologia',
-                           # 'Entretenimiento',
-                           # 'Economia',
-                           ]
+def get_filename(selected_categories: list, split_training: float, eliminate_perc: float, prefix = "") ->str:
+    filename = f"{prefix}+del{str(int(eliminate_perc * 100))}+train{str(int(split_training * 100))}"
+    for cat in selected_categories:
+        filename += "-" + cat
+    filename += ".json"
+    return filename
 
+
+def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0) -> tuple:
     df = pd.read_excel('Noticias_argentinas.xlsx')[["titular", "fuente", "categoria"]]
     df = df.loc[df['categoria'].isin(selected_categories)]
-    print(df.shape)
+    print(df)
+    categories_unique = df['categoria'].unique()
+    df_training = pd.DataFrame(columns=df.columns)
+    df_test = pd.DataFrame(columns=df.columns)
+    for c in categories_unique:
+        df_temp = df.query(f'categoria == "{c}"')
+        rows_temp = df_temp.shape[0]
+
+        # remove data for faster testing
+        df_temp = df_temp.iloc[:int(rows_temp * (1 - eliminate_perc)), :]
+        rows_temp = df_temp.shape[0]
+
+        split = int(rows_temp * split_training)
+        df_training_temp = df_temp.iloc[:split, :]
+        df_test_temp = df_temp.iloc[split:, :]
+        print(f"dataset length for category: {c}: training: {df_training_temp.shape[0]}, test: {df_test_temp.shape[0]}")
+        df_training = pd.concat(
+            [df_training, df_training_temp],
+            axis=0)
+
+        df_test = pd.concat(
+            [df_test, df_test_temp],
+            axis=0
+        )
+
+    print("test:")
+    print(df_test)
+
+    print("training:")
+    print(df_training)
+
+    return df_training, df_test, df
+
+def task_2(split_training: float, eliminate_perc=0.0):
+    selected_categories = [#'Internacional',
+                           #'Nacional',
+                           #'Destacadas',
+                           'Deportes',
+                           'Salud',
+                            #'Ciencia y Tecnologia',
+                           # 'Entretenimiento',
+                           # 'Economia',
+                           ]  
+     
+    df_training, df_test, df = get_training_test(selected_categories, split_training, eliminate_perc)
+ 
     word_two_way_dict = TwoWayDict(to_word_list(df))
-    word_matrix = dataframe_to_word_matrix(df, word_two_way_dict)
+    word_matrix = dataframe_to_word_matrix(df_training, word_two_way_dict)
 
-    # for testing, the words extracted in one row should correspond to words of a row
-    # for x in range(word_matrix.shape[1]):
-    #     if word_matrix[1][x] == 1:
-    #         print(word_two_way_dict.get_word_at(x))
+    classifier = NaiveClassifier(word_matrix, df_training[["categoria"]].to_numpy())
 
-    classifier = NaiveClassifier(word_matrix, df[["categoria"]].to_numpy())
+    test_data_word_matrix = dataframe_to_word_matrix(df_test, word_two_way_dict)
 
-    in_word_matrix = dataframe_to_word_matrix(df.loc[[0]], word_two_way_dict).ravel()
-    print(df.loc[[0]])
-    classifier.evaluate(in_word_matrix)
+    hits = 0
+    store = []
+    for index, row in enumerate(df_test.iterrows()):
+        result = classifier.evaluate(test_data_word_matrix[index].ravel())
+        category = row[1].at['categoria']
+        highest_cat = get_highest_score(result)
+        store.append([result, highest_cat, category])
+        if category == highest_cat:
+            hits += 1
 
+    filename = get_filename(selected_categories,split_training,eliminate_perc)
+    with open(filename, 'w') as file_object:
+        json.dump(store, file_object)
+    print(f"correctly classified: {100 * (hits / test_data_word_matrix.shape[0])}")
+
+
+def task_2_4_roc(split_training: float, eliminate_perc=0.0):
+    selected_categories = [#'Internacional',
+                       #'Nacional',
+                       #'Destacadas',
+                       'Deportes',
+                       'Salud',
+                        'Ciencia y Tecnologia',
+                        'Entretenimiento',
+                       # 'Economia',
+                       ]
+    
+    
+    df_training, df_test, df = get_training_test(selected_categories, split_training, eliminate_perc,"Deportes")
+    word_two_way_dict = TwoWayDict(to_word_list(df))
+    word_matrix = dataframe_to_word_matrix(df_training, word_two_way_dict)
+
+    classifier = NaiveClassifier(word_matrix, df_training[["categoria"]].to_numpy())
+
+    test_data_word_matrix = dataframe_to_word_matrix(df_test, word_two_way_dict)
+
+    hits = 0
+    store = []
+    for index, row in enumerate(df_test.iterrows()):
+        result = classifier.evaluate(test_data_word_matrix[index].ravel())
+        category = row[1].at['categoria']
+        highest_cat = get_highest_score(result)
+        store.append([result, highest_cat, category])
+        if category == highest_cat:
+            hits += 1
+
+    filename = get_filename(selected_categories,split_training,eliminate_perc,"roc_deportes")
+    with open(filename, 'w') as file_object:
+        json.dump(store, file_object)
+    print(f"correctly classified: {100 * (hits / test_data_word_matrix.shape[0])}")
+    
+
+    pass
 
 if __name__ == '__main__':
-    task_1()
-    # task_2()
+    print("executing main ...")
+    # task_1()
+    task_2(0.9)
+
