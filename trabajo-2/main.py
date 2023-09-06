@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import threading
+import json
 
 SEPARATORS = [',', '.', ':', '\'', '\"',
               "?", "!", "¡", "¿", "(", ")", "[", "]"]
@@ -199,18 +200,20 @@ def task_1():
     classifier = NaiveClassifier(df[["scones", "cerveza", "wiskey", "avena", "futbol"]].to_numpy(),
                                  df[["Nacionalidad"]].to_numpy())
 
-    classifier.evaluate(np.array([1, 0, 1, 1, 0]))
-    classifier.evaluate(np.array([0, 1, 1, 0, 1]))
+    print(classifier.evaluate(np.array([1, 0, 1, 1, 0])))
+    print(classifier.evaluate(np.array([0, 1, 1, 0, 1])))
 
+def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0):
+    pass
 
 def task_2(split_training: float, eliminate_perc=0.0):
-    selected_categories = ['Internacional',
-                           'Nacional',
-                           # 'Destacadas',
+    selected_categories = [#'Internacional',
+                           #'Nacional',
+                           #'Destacadas',
                            'Deportes',
                            'Salud',
-                           # 'Ciencia y Tecnologia',
-                           # 'Entretenimiento',
+                            'Ciencia y Tecnologia',
+                            'Entretenimiento',
                            # 'Economia',
                            ]
 
@@ -255,15 +258,30 @@ def task_2(split_training: float, eliminate_perc=0.0):
     test_data_word_matrix = dataframe_to_word_matrix(df_test, word_two_way_dict)
 
     hits = 0
+    store = []
     for index, row in enumerate(df_test.iterrows()):
         result = classifier.evaluate(test_data_word_matrix[index].ravel())
         category = row[1].at['categoria']
         highest_cat = get_highest_score(result)
+        store.append([result, highest_cat, category])
         if category == highest_cat:
             hits += 1
 
-    print(f"correctly classified: {100*(hits / test_data_word_matrix.shape[0] )}")
+    filename = f"del{str(int(eliminate_perc * 100))}train{str(int(split_training * 100))}"
+    for cat in selected_categories:
+        filename += "-" + cat
+    filename += ".json"
+
+    with open(filename, 'w') as file_object:
+        json.dump(store, file_object)
+    print(f"correctly classified: {100 * (hits / test_data_word_matrix.shape[0])}")
+
+
+def task_2_4_roc():
+    pass
 
 if __name__ == '__main__':
     # task_1()
-    task_2(0.9)
+    task_2(0.9, 0.97)
+    # task_2_4_roc()
+
