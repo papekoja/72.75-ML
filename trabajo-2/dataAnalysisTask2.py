@@ -12,8 +12,10 @@ def loadFile(filename: str):
 
     return aList
 
-def subtask_1_2_3():
-  # confusion matrix
+
+if __name__ == '__main__':
+
+    # confusion matrix
     file_name = "90-Deportes-Salud-Ciencia y Tecnologia-Entretenimiento.json"
     data = loadFile(file_name)
     classes_amount = len(data[0][0])

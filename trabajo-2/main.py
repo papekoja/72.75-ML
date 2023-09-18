@@ -203,6 +203,8 @@ def task_1():
     print(classifier.evaluate(np.array([1, 0, 1, 1, 0])))
     print(classifier.evaluate(np.array([0, 1, 1, 0, 1])))
 
+def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0):
+    pass
 
 def get_filename(selected_categories: list, split_training: float, eliminate_perc: float, prefix = "") ->str:
     filename = f"{prefix}+del{str(int(eliminate_perc * 100))}+train{str(int(split_training * 100))}"
@@ -210,6 +212,17 @@ def get_filename(selected_categories: list, split_training: float, eliminate_per
         filename += "-" + cat
     filename += ".json"
     return filename
+
+def task_2(split_training: float, eliminate_perc=0.0):
+    selected_categories = [#'Internacional',
+                           #'Nacional',
+                           #'Destacadas',
+                           'Deportes',
+                           'Salud',
+                            'Ciencia y Tecnologia',
+                            'Entretenimiento',
+                           # 'Economia',
+                           ]
 
 
 def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0) -> tuple:
