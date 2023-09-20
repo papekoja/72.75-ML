@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 
@@ -16,6 +17,13 @@ train, test = train_test_split(data, test_size=0.1, random_state=40)
 #change all categorical variables to integer
 train = train.apply(lambda x: pd.factorize(x)[0])
 test = test.apply(lambda x: pd.factorize(x)[0])
+
+# function that divides the data into two parts, the training set and the test set, with a given percentage
+def split_data(num_samples):
+    # Use the 'sample' method to randomly select rows
+    random_samples = data.sample(n=num_samples, random_state=42)
+    train, test = train_test_split(random_samples, test_size=0.5, random_state=42)
+    return train, test
 
 #Implementar el algoritmo ID3 para clasificar los datos y poder determinar si una persona devolverá el crédito o no, utilizando todas las variables y la entropía de Shannon para la función Ganancia de Información.
 
@@ -81,13 +89,11 @@ def ID3(data, target, atributo_padre=None, valor_padre=None):
             arbol[maximo][valor] = valor_frecuente
         else:
             arbol[maximo][valor] = ID3(subconjunto, target, maximo, valor_frecuente)
-
     return arbol
 
 #5. predecir
 
 def predecir(instancia, arbol, default=None):
-    
         #instancia: instancia a predecir
         #arbol: arbol de decision
         #default: valor por defecto
@@ -136,10 +142,11 @@ precision_train = []
 precision_test = []
 nodos = []
 
-for i in range(1, 25):
-    arbol = ID3(train, 'Creditability')
-    precision_train.append(precision(train, arbol, 'Creditability'))
-    precision_test.append(precision(test, arbol, 'Creditability'))
+for i in list(range(100, 1001, 100)):
+    train_local, test_local = split_data(i)
+    arbol = ID3(train_local, 'Creditability')
+    precision_train.append(precision(train_local, arbol, 'Creditability'))
+    precision_test.append(precision(test_local, arbol, 'Creditability'))
     nodos.append(i)
 
 plt.plot(nodos, precision_train, label='Conjunto de entrenamiento')
@@ -151,5 +158,3 @@ plt.ylabel('Precision')
 plt.title('Curva de precision para ID3')
 plt.legend()
 plt.show()
-
-
