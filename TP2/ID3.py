@@ -143,6 +143,7 @@ precision_train = []
 precision_test = []
 nodos = []
 
+#test the algorithm with different number of nodes from from 100 to 1000 in increments of 100. Right now it gives bad results though
 for i in list(range(100, 1001, 100)):
     train_local, test_local = split_data(i)
     arbol = ID3(train_local, 'Creditability')
