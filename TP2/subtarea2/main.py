@@ -2,6 +2,7 @@ import math
 import numpy as np
 import pandas
 import pandas as pd
+from matplotlib import pyplot as plt
 
 
 def data_clean_up():
@@ -109,9 +110,9 @@ def k_nn(k: int, class_x_new_instance: list, class_x_instances: list, weighted=F
         c = int(distance_instance[_k][1][0])
         if c in class_amount_in_first_k.keys():
 
-            class_amount_in_first_k[c] += 1 if not weighted else 1/(distance_instance[_k][0])**2
+            class_amount_in_first_k[c] += 1 if not weighted else 1 / (distance_instance[_k][0]) ** 2
         else:
-            class_amount_in_first_k[c] = 1 if not weighted else 1/(distance_instance[_k][0])**2
+            class_amount_in_first_k[c] = 1 if not weighted else 1 / (distance_instance[_k][0]) ** 2
 
     amount = list(class_amount_in_first_k.values())
     amount.sort(reverse=True)
@@ -125,15 +126,64 @@ def k_nn(k: int, class_x_new_instance: list, class_x_instances: list, weighted=F
 
 
 def task3(_df_training, _df_test):
-    _k = 20
+    _k = 60
     for test in _df_test:
         print(
-            f'{test[0]} -> {k_nn(_k, test, _df_training, weighted=False)}, weighted: {k_nn(_k, test, _df_training, weighted=True)}')
+            f'{test[0]} -> {k_nn(_k, test, _df_training, weighted=False)},'
+            f' weighted: {k_nn(_k, test, _df_training, weighted=True)}')
+
+
+def task4(_df_training, _df_test):
+    labels = range(1, 6)
+
+    _k = 3
+    hit_matrix = np.zeros((len(labels), len(labels)))
+    true_positives = [0] * 5
+    false_positives = [0] * 5
+    for test in _df_test:
+        result_k_nn = k_nn(_k, test, _df_training, weighted=True)
+        if len(result_k_nn) == 1:
+            if int(test[0]) == result_k_nn[0]:
+                true_positives[int(test[0]) - 1] += 1
+            else:
+                false_positives[int(test[0]) - 1] += 1
+
+            hit_matrix[int(test[0]) - 1][result_k_nn[0] - 1] += 1
+
+    for star in range(5):
+        print(
+            f'{star + 1}-star reviews have a precision of '
+            f'{true_positives[star] / (true_positives[star] + false_positives[star])}')
+    fig, ax = plt.subplots()
+    im = ax.imshow(hit_matrix)
+
+    # Show all ticks and label them with the respective list entries
+    ax.set_xticks(np.arange(len(labels)), labels=labels)
+    ax.set_yticks(np.arange(len(labels)), labels=labels)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), ha="right")
+    ax.xaxis.set_ticks_position('top')
+
+    # Loop over data dimensions and create text annotations.
+    for i in range(len(labels)):
+        for j in range(len(labels)):
+            ax.text(j, i, str(hit_matrix[i, j])[:5],
+                    ha="center", va="center", color="w", )
+
+    ax.set_title("Matriz de confusión")
+    fig.tight_layout()
+
+    # file_name = "asdf"
+    # plt.savefig(f'ConfusionMatrix-{file_name}.png', dpi=300)
+    #
+    plt.show()
 
 
 if __name__ == '__main__':
     df = data_clean_up()
     task1(df)
-    df_training, df_test = task2(df, 0.8)
+    df_training, df_test = task2(df, 0.75)
     print(df_test)
     task3(df_training, df_test)
+    task4(df_training, df_test)

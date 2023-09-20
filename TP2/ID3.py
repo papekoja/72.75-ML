@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
 
 
 
@@ -150,9 +151,7 @@ for i in list(range(100, 1001, 100)):
     nodos.append(i)
 
 plt.plot(nodos, precision_train, label='Conjunto de entrenamiento')
-
 plt.plot(nodos, precision_test, label='Conjunto de prueba')
-
 plt.xlabel('Cantidad de nodos')
 plt.ylabel('Precision')
 plt.title('Curva de precision para ID3')
