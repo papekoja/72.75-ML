@@ -203,26 +203,13 @@ def task_1():
     print(classifier.evaluate(np.array([1, 0, 1, 1, 0])))
     print(classifier.evaluate(np.array([0, 1, 1, 0, 1])))
 
-def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0):
-    pass
 
-def get_filename(selected_categories: list, split_training: float, eliminate_perc: float, prefix = "") ->str:
+def get_filename(selected_categories: list, split_training: float, eliminate_perc: float, prefix="") -> str:
     filename = f"{prefix}+del{str(int(eliminate_perc * 100))}+train{str(int(split_training * 100))}"
     for cat in selected_categories:
         filename += "-" + cat
     filename += ".json"
     return filename
-
-def task_2(split_training: float, eliminate_perc=0.0):
-    selected_categories = [#'Internacional',
-                           #'Nacional',
-                           #'Destacadas',
-                           'Deportes',
-                           'Salud',
-                            'Ciencia y Tecnologia',
-                            'Entretenimiento',
-                           # 'Economia',
-                           ]
 
 
 def get_training_test(selected_categories: list, split_training: float, eliminate_perc=0.0) -> tuple:
@@ -261,19 +248,20 @@ def get_training_test(selected_categories: list, split_training: float, eliminat
 
     return df_training, df_test, df
 
+
 def task_2(split_training: float, eliminate_perc=0.0):
-    selected_categories = [#'Internacional',
-                           #'Nacional',
-                           #'Destacadas',
-                           'Deportes',
-                           'Salud',
-                            #'Ciencia y Tecnologia',
-                           # 'Entretenimiento',
-                           # 'Economia',
-                           ]  
-     
+    selected_categories = [  # 'Internacional',
+        # 'Nacional',
+        # 'Destacadas',
+        'Deportes',
+        'Salud',
+        # 'Ciencia y Tecnologia',
+        # 'Entretenimiento',
+        # 'Economia',
+    ]
+
     df_training, df_test, df = get_training_test(selected_categories, split_training, eliminate_perc)
- 
+
     word_two_way_dict = TwoWayDict(to_word_list(df))
     word_matrix = dataframe_to_word_matrix(df_training, word_two_way_dict)
 
@@ -291,25 +279,24 @@ def task_2(split_training: float, eliminate_perc=0.0):
         if category == highest_cat:
             hits += 1
 
-    filename = get_filename(selected_categories,split_training,eliminate_perc)
+    filename = get_filename(selected_categories, split_training, eliminate_perc)
     with open(filename, 'w') as file_object:
         json.dump(store, file_object)
     print(f"correctly classified: {100 * (hits / test_data_word_matrix.shape[0])}")
 
 
 def task_2_4_roc(split_training: float, eliminate_perc=0.0):
-    selected_categories = [#'Internacional',
-                       #'Nacional',
-                       #'Destacadas',
-                       'Deportes',
-                       'Salud',
-                        'Ciencia y Tecnologia',
-                        'Entretenimiento',
-                       # 'Economia',
-                       ]
-    
-    
-    df_training, df_test, df = get_training_test(selected_categories, split_training, eliminate_perc,"Deportes")
+    selected_categories = [  # 'Internacional',
+        # 'Nacional',
+        # 'Destacadas',
+        'Deportes',
+        'Salud',
+        'Ciencia y Tecnologia',
+        'Entretenimiento',
+        # 'Economia',
+    ]
+
+    df_training, df_test, df = get_training_test(selected_categories, split_training, eliminate_perc, "Deportes")
     word_two_way_dict = TwoWayDict(to_word_list(df))
     word_matrix = dataframe_to_word_matrix(df_training, word_two_way_dict)
 
@@ -327,16 +314,15 @@ def task_2_4_roc(split_training: float, eliminate_perc=0.0):
         if category == highest_cat:
             hits += 1
 
-    filename = get_filename(selected_categories,split_training,eliminate_perc,"roc_deportes")
+    filename = get_filename(selected_categories, split_training, eliminate_perc, "roc_deportes")
     with open(filename, 'w') as file_object:
         json.dump(store, file_object)
     print(f"correctly classified: {100 * (hits / test_data_word_matrix.shape[0])}")
-    
 
     pass
+
 
 if __name__ == '__main__':
     print("executing main ...")
     # task_1()
     task_2(0.9)
-
