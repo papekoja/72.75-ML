@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
@@ -9,19 +9,18 @@ data = pd.read_csv('german_credit.csv', sep=',', decimal='.')
 X = data.drop('Creditability', axis=1)  # Features
 y = data['Creditability']  # Target variable
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=34)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=38)
 
 accuracy_train = []
 accuracy_test = []
-max_depths = range(1, 25)
+n_estimators_values = range(1, 25)
 confusion_matrices_train = []
 confusion_matrices_test = []
 
-# Loop through different max_depth values
-for max_depth in max_depths:
-    # Create a DecisionTreeClassifier, uses CART under the hood butttt....
-    # Using the Entropy criterion will sort of mimic the ID3 tree instead of the CART algorithm
-    clf = DecisionTreeClassifier(max_depth=max_depth, random_state=42, criterion="entropy")
+# Loop through different n_estimators values (number of trees)
+for n_estimators in n_estimators_values:
+    # Create a RandomForestClassifier
+    clf = RandomForestClassifier(n_estimators=n_estimators, random_state=42)
     
     # Fit the classifier to the training data
     clf.fit(X_train, y_train)
@@ -43,16 +42,16 @@ for max_depth in max_depths:
 # Create a plot to visualize the accuracy
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
-plt.plot(max_depths, accuracy_train, label='Train Accuracy')
-plt.plot(max_depths, accuracy_test, label='Test Accuracy')
-plt.xlabel('Max Depth')
+plt.plot(n_estimators_values, accuracy_train, label='Train Accuracy')
+plt.plot(n_estimators_values, accuracy_test, label='Test Accuracy')
+plt.xlabel('Number of Trees (n_estimators)')
 plt.ylabel('Accuracy (%)')
-plt.title('Accuracy vs. Max Depth for Decision Tree Classifier')
+plt.title('Accuracy vs. Number of Trees for Random Forest Classifier')
 plt.legend()
 
 # Visualize confusion matrices
 plt.subplot(1, 2, 2)
-plt.title('Confusion Matrix for Test Data (Max Depth = 24)')
+plt.title('Confusion Matrix for Test Data (Number of Trees = 100)')
 sns.heatmap(confusion_matrices_test[-1], annot=True, fmt='d', cmap='Blues', cbar=False)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
