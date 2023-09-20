@@ -137,28 +137,28 @@ precision_train = []
 precision_test = []
 nodos = []
 
-# for i in range(1, 25):
-#     arbol = ID3(train, 'Creditability')
-#     precision_train.append(precision(train, arbol, 'Creditability'))
-#     precision_test.append(precision(test, arbol, 'Creditability'))
-#     nodos.append(i)
-
 for i in range(1, 25):
-    # Create a DecisionTreeClassifier with the specified max depth
-    clf = DecisionTreeClassifier(max_depth=i)
-    
-    # Fit the model on the training data
-    clf.fit(train.drop('Creditability', axis=1), train['Creditability'])
-    
-    # Predict on training data and calculate precision
-    train_predictions = clf.predict(train.drop('Creditability', axis=1))
-    precision_train.append((train['Creditability'] == train_predictions).mean() * 100)
-    
-    # Predict on test data and calculate precision
-    test_predictions = clf.predict(test.drop('Creditability', axis=1))
-    precision_test.append((test['Creditability'] == test_predictions).mean() * 100)
-    
+    arbol = ID3(train, 'Creditability')
+    precision_train.append(precision(train, arbol, 'Creditability'))
+    precision_test.append(precision(test, arbol, 'Creditability'))
     nodos.append(i)
+
+# for i in range(1, 25):
+#     # Create a DecisionTreeClassifier with the specified max depth
+#     clf = DecisionTreeClassifier(max_depth=i)
+    
+#     # Fit the model on the training data
+#     clf.fit(train.drop('Creditability', axis=1), train['Creditability'])
+    
+#     # Predict on training data and calculate precision
+#     train_predictions = clf.predict(train.drop('Creditability', axis=1))
+#     precision_train.append((train['Creditability'] == train_predictions).mean() * 100)
+    
+#     # Predict on test data and calculate precision
+#     test_predictions = clf.predict(test.drop('Creditability', axis=1))
+#     precision_test.append((test['Creditability'] == test_predictions).mean() * 100)
+    
+#     nodos.append(i)
 
 
 plt.plot(nodos, precision_train, label='Conjunto de entrenamiento')
