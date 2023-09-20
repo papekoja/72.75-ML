@@ -9,7 +9,7 @@ data = pd.read_csv('german_credit.csv', sep=',', decimal='.')
 X = data.drop('Creditability', axis=1)  # Features
 y = data['Creditability']  # Target variable
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=38)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=55)
 
 accuracy_train = []
 accuracy_test = []
@@ -20,7 +20,7 @@ confusion_matrices_test = []
 # Loop through different n_estimators values (number of trees)
 for n_estimators in n_estimators_values:
     # Create a RandomForestClassifier
-    clf = RandomForestClassifier(n_estimators=n_estimators, random_state=42)
+    clf = RandomForestClassifier(n_estimators=n_estimators, random_state=39)
     
     # Fit the classifier to the training data
     clf.fit(X_train, y_train)
