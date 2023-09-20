@@ -95,7 +95,7 @@ def distance(x_class_1: list, x_class_2: list):
     return math.sqrt(sum_distances)
 
 
-def k_nn(k: int, class_x_new_instance: list, class_x_instances: list):
+def k_nn(k: int, class_x_new_instance: list, class_x_instances: list, weighted=False):
     distance_instance = []
     # sort by distance to newly inserted instance
     for x_class in class_x_instances:
@@ -108,12 +108,13 @@ def k_nn(k: int, class_x_new_instance: list, class_x_instances: list):
     for _k in range(k):
         c = int(distance_instance[_k][1][0])
         if c in class_amount_in_first_k.keys():
-            class_amount_in_first_k[c] += 1
+
+            class_amount_in_first_k[c] += 1 if not weighted else 1/(distance_instance[_k][0])**2
         else:
-            class_amount_in_first_k[c] = 1
+            class_amount_in_first_k[c] = 1 if not weighted else 1/(distance_instance[_k][0])**2
 
     amount = list(class_amount_in_first_k.values())
-    amount.sort()
+    amount.sort(reverse=True)
 
     return_list = []
     for key in class_amount_in_first_k.keys():
@@ -124,8 +125,10 @@ def k_nn(k: int, class_x_new_instance: list, class_x_instances: list):
 
 
 def task3(_df_training, _df_test):
+    _k = 20
     for test in _df_test:
-        print(f'{k_nn(1, test, _df_training)} from {test}')
+        print(
+            f'{test[0]} -> {k_nn(_k, test, _df_training, weighted=False)}, weighted: {k_nn(_k, test, _df_training, weighted=True)}')
 
 
 if __name__ == '__main__':
