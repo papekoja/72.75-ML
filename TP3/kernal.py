@@ -71,8 +71,3 @@ def rbf(x1, x2, gamma=1.0):
     diff = x1 - x2
     squared_norm = np.dot(diff, diff)
     return np.exp(-gamma * squared_norm)
-
-
-
-def my_function():
-    print("This is a function from script1")
