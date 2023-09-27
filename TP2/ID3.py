@@ -42,7 +42,6 @@ def ganancia_informacion(data, atributo, target):
     #data: conjunto de datos
     #atributo: variable a analizar
     #target: variable objetivo
-
     entropia_total = entropia(data, target)
     valores_atributo = data[atributo].unique()
     entropia_atributo = 0
