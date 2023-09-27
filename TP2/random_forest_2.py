@@ -9,7 +9,7 @@ data = pd.read_csv('german_credit.csv', sep=',', decimal='.')
 X = data.drop('Creditability', axis=1)  # Features
 y = data['Creditability']  # Target variable
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=55)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=19)
 
 accuracy_train = []
 accuracy_test = []
@@ -20,7 +20,7 @@ confusion_matrices_test = []
 # Loop through different n_estimators values (number of trees)
 for n_estimators in n_estimators_values:
     # Create a RandomForestClassifier
-    clf = RandomForestClassifier(n_estimators=n_estimators, random_state=39)
+    clf = RandomForestClassifier(n_estimators=100, random_state=39, max_depth=n_estimators)
     
     # Fit the classifier to the training data
     clf.fit(X_train, y_train)
@@ -44,9 +44,9 @@ plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 plt.plot(n_estimators_values, accuracy_train, label='Train Accuracy')
 plt.plot(n_estimators_values, accuracy_test, label='Test Accuracy')
-plt.xlabel('Number of Trees (n_estimators)')
+plt.xlabel('Depth of trees')
 plt.ylabel('Accuracy (%)')
-plt.title('Accuracy vs. Number of Trees for Random Forest Classifier')
+plt.title('Accuracy vs. Depth of Trees for Random Forest Classifier')
 plt.legend()
 
 # Visualize confusion matrices
