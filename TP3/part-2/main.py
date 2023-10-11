@@ -6,10 +6,12 @@ import psutil
 import os
 import joblib
 
+patch_size=1
+
 p = psutil.Process(os.getpid())
 p.nice(psutil.HIGH_PRIORITY_CLASS)
 
-def extract_patches_rgb(img, patch_size=7):
+def extract_patches_rgb(img):
     """
     Extract local patches around each pixel in the RGB image.
 
@@ -37,9 +39,9 @@ def classify_image(image, clf):
     # Map predictions to colors
     # For this example, let's use red, green, and blue for the three categories
     color_map = {
-        0: [255, 0, 0],  # Red = Cow
+        0: [255, 0, 0],  # Blue = Cow
         1: [0, 255, 0],  # Green = Grass
-        2: [0, 0, 255]   # Blue = Sky
+        2: [0, 0, 255]   # Red = Sky
     }
     colored_output = np.array([color_map[category] for category in predicted_categories])
 
@@ -50,6 +52,21 @@ def classify_image(image, clf):
     else:
         output_image = colored_output.reshape(image.shape[0], image.shape[1], 3)
 
+    return output_image
+
+
+def calssify_heat_map_prob(image, clf, index: int):
+    patches = extract_patches_rgb(image)
+    y_pred_prob = clf.predict_proba(patches)
+
+    colored_output = np.array([[0,0,prob[index]*255] for prob in y_pred_prob])
+
+    # Reshape the colored output to match the original image shape
+    output_image = None
+    if is_rgb:
+        output_image = colored_output.reshape(image.shape)
+    else:
+        output_image = colored_output.reshape(image.shape[0], image.shape[1], 3)
 
     return output_image
 
@@ -57,10 +74,10 @@ is_rgb = True
 
 read_mode = cv2.IMREAD_COLOR if is_rgb else cv2.IMREAD_GRAYSCALE
 # Load images
-vaca = cv2.imread('TP3\img/vaca.jpeg', read_mode)
-pasto = cv2.imread('TP3\img\pasto.jpeg', read_mode)
-cielo = cv2.imread('TP3\img\cielo.jpeg', read_mode)
-cow = cv2.imread('TP3\img\cow.jpeg', read_mode)
+vaca = cv2.imread('img/vaca.jpeg', read_mode)
+pasto = cv2.imread('img\pasto.jpeg', read_mode)
+cielo = cv2.imread('img\cielo.jpeg', read_mode)
+cow = cv2.imread('img\cow.jpeg', read_mode)
 
 # Create image patches of each image
 vaca_patches = extract_patches_rgb(vaca)
@@ -98,7 +115,7 @@ test_labels = labels_subset[int(len(labels_subset) * train_quota):]
 
 # Train the SVM
 print("Training SVM...")
-clf = svm.SVC(kernel='linear') # linear, poly, rbf, sigmoid
+clf = svm.SVC(kernel='linear', probability=True) # linear, poly, rbf, sigmoid
 clf.fit(train_patches, train_labels)
 
 # Store or load trained model
@@ -113,7 +130,7 @@ joblib.dump(clf, filename)
 # Predict on test images and create confusion matrix
 print("Testing SVM...")
 # Make predictions on the test set
-y_pred = clf.predict(test_patches)  # Replace 'clf' with the name of your trained SVM classifier
+y_pred = clf.predict(test_patches)
 
 # Create a confusion matrix
 confusion_mat = confusion_matrix(test_labels, y_pred)
@@ -122,12 +139,21 @@ confusion_mat = confusion_matrix(test_labels, y_pred)
 print("Confusion Matrix:")
 print(confusion_mat)
 
-""" # Predict on a new image
+ # Predict on a new image
 print("Predicting on a new image...")
 
-output_image = classify_image(cow, clf)
+output_image = calssify_heat_map_prob(cow,clf,2)#classify_image(cow, clf)
 
 # Show the output image
-output_image = np.clip(output_image, 0, 255).astype(np.uint8)
+output_image = np.clip(output_image, 1, 255).astype(np.uint8)
+
+file_name = f'HeatMapSky_{clf.get_params()["kernel"]}_{patch_size}'
 cv2.imshow('Output', output_image)
-cv2.waitKey(0) """
+cv2.imwrite('ImgOut/'+file_name+'.png', output_image)
+cv2.waitKey(0) 
+
+
+"""
+#output_image = calssify_heat_map_prob(cow, clf)
+#print(output_image)
+#print(output_image[0])"""
