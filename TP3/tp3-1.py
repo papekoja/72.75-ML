@@ -82,7 +82,7 @@ def plot_comparison(data, labels, w_normal, b_normal, w_optimized, b_optimized):
     plt.show()
 
 
-n_items = 500
+n_items = 20
 b0 = 0.5
 b1 = -1
 b2 = 2
