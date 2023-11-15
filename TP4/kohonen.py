@@ -98,6 +98,8 @@ processed_test_data_filtered = numerical_pipeline.transform(test_data_filtered[n
 processed_train_df_filtered = pd.DataFrame(processed_train_data_filtered, columns=numerical_cols)
 processed_test_df_filtered = pd.DataFrame(processed_test_data_filtered, columns=numerical_cols)
 
+
+
 # Initialize the SOM with the filtered data's dimensions
 num_features_filtered = processed_train_df_filtered.shape[1]
 som_filtered = SOM(height=10, width=10, input_dim=num_features_filtered)
