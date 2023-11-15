@@ -102,7 +102,7 @@ def build_tree(data_vector, data_class):
         
         #add new set to the list
         set_to_index[smaller_index] = new_set
-        print(f"removed index: {larger_index} and merged with {smaller_index} with distance {min}")
+        # print(f"removed index: {larger_index} and merged with {smaller_index} with distance {min}")
 
     return set_to_index[0]
 
@@ -144,5 +144,5 @@ def test_2d():
     print(build_tree(point_cloud, point_cloud))
 
 if __name__ == '__main__':
-    #main()
-    test_2d()
+    main()
+    # test_2d()
