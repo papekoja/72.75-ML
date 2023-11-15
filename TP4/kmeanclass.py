@@ -89,14 +89,14 @@ class KMeansClustering:
         plt.show()
 
 
-# Utilisation de la classe
-data = pd.read_csv('movie_data.csv', sep=';', decimal='.')
-data_numerical = data[['budget', 'popularity', 'production_companies', 'production_countries', 'revenue', 'runtime', 'spoken_languages', 'vote_average', 'vote_count']].dropna()
-data_numerical = KMeansClustering.remove_outliers(data_numerical)
+# # Utilisation de la classe
+# data = pd.read_csv('movie_data.csv', sep=';', decimal='.')
+# data_numerical = data[['budget', 'popularity', 'production_companies', 'production_countries', 'revenue', 'runtime', 'spoken_languages', 'vote_average', 'vote_count']].dropna()
+# data_numerical = KMeansClustering.remove_outliers(data_numerical)
 
-scaler = StandardScaler()
-data_scaled = scaler.fit_transform(data_numerical)
+# scaler = StandardScaler()
+# data_scaled = scaler.fit_transform(data_numerical)
 
-kmeans = KMeansClustering(data_scaled, k=5)
-kmeans.k_means_clustering()
-kmeans.plot_clusters()
+# kmeans = KMeansClustering(data_scaled, k=5)
+# kmeans.k_means_clustering()
+# kmeans.plot_clusters()
