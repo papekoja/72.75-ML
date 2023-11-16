@@ -48,8 +48,8 @@ class KMeansClustering:
         Q1 = data.quantile(0.25)
         Q3 = data.quantile(0.75)
         IQR = Q3 - Q1
-        data_filtered = data[~((data < (Q1 - threshold * IQR)) | (data > (Q3 + threshold * IQR))).any(axis=1)]
-        return data_filtered
+        mask = ~((data < (Q1 - threshold * IQR)) | (data > (Q3 + threshold * IQR))).any(axis=1)
+        return data[mask], mask
 
     def calculate_wcss(self):
         wcss = []
@@ -73,7 +73,7 @@ class KMeansClustering:
         plt.title('The Elbow Method showing the optimal k')
         plt.show()
 
-    def plot_clusters(self, feature_indices=(0, 1, 2)):
+    def plot_clusters(self, feature_indices=(5, 2, 4)):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         colors = ['r', 'g', 'b', 'y', 'c', 'm', 'k', 'orange', 'purple', 'brown']
@@ -88,15 +88,78 @@ class KMeansClustering:
         plt.legend()
         plt.show()
 
+    def predict_cluster(self, new_data):
+        
+        distances = [np.linalg.norm(new_data - centroid) for centroid in self.centroids]
+        return np.argmin(distances)
+
 
 # Utilisation de la classe
 data = pd.read_csv('movie_data.csv', sep=';', decimal='.')
 data_numerical = data[['budget', 'popularity', 'production_companies', 'production_countries', 'revenue', 'runtime', 'spoken_languages', 'vote_average', 'vote_count']].dropna()
-data_numerical = KMeansClustering.remove_outliers(data_numerical)
 
+# Suppression des outliers
+data_numerical, mask = KMeansClustering.remove_outliers(data_numerical)
+
+# Obtenez les indices des lignes conservées
+indices = mask[mask].index
+
+# Synchronisez 'data' avec ces indices
+data = data.loc[indices].reset_index(drop=True)
+
+# Poursuivez avec la standardisation et le clustering
 scaler = StandardScaler()
 data_scaled = scaler.fit_transform(data_numerical)
 
+# KMeans Clustering
 kmeans = KMeansClustering(data_scaled, k=5)
 kmeans.k_means_clustering()
-kmeans.plot_clusters()
+
+# Assignez les clusters à 'data'
+data['cluster'] = [kmeans.predict_cluster(row) for row in data_scaled]
+
+
+# Affectation des clusters à 'data'
+if len(data_scaled) == len(data):
+    data['cluster'] = [kmeans.predict_cluster(row) for row in data_scaled]
+else:
+    print("Erreur : les longueurs des DataFrames ne correspondent pas.")
+
+# Trouver le genre dominant dans chaque cluster
+genre_dominant_par_cluster = {}
+for cluster in range(kmeans.k):
+    films_dans_cluster = data[data['cluster'] == cluster]
+    comptage_genres = films_dans_cluster['genres'].value_counts()
+    genre_dominant = comptage_genres.idxmax() if not comptage_genres.empty else 'Aucun genre dominant'
+    genre_dominant_par_cluster[cluster] = genre_dominant
+
+# Affichage des genres dominants
+for cluster, genre in genre_dominant_par_cluster.items():
+    print(f"Cluster {cluster}: Genre dominant = {genre}")
+
+genres_cibles = ['Action', 'Drama', 'Comedy']
+
+# Créer un dictionnaire pour stocker les résultats
+pourcentages_par_cluster = {cluster: {genre: 0 for genre in genres_cibles} for cluster in range(kmeans.k)}
+
+# Calculer les pourcentages
+for cluster in range(kmeans.k):
+    # Sélectionner les films dans le cluster courant
+    films_dans_cluster = data[data['cluster'] == cluster]
+
+    # Calculer le total des films dans le cluster
+    total_films = len(films_dans_cluster)
+
+    # Calculer le pourcentage pour chaque genre cible
+    if total_films > 0:
+        for genre in genres_cibles:
+            nombre = films_dans_cluster['genres'].str.contains(genre).sum()
+            pourcentage = (nombre / total_films) * 100
+            pourcentages_par_cluster[cluster][genre] = pourcentage
+
+# Afficher les résultats
+for cluster, genres_info in pourcentages_par_cluster.items():
+    print(f"Cluster {cluster}:")
+    for genre, pourcentage in genres_info.items():
+        print(f"  {genre}: {pourcentage:.2f}%")
+    print()
