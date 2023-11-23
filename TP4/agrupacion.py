@@ -5,6 +5,7 @@ import math
 import random
 from plotly.figure_factory import create_dendrogram
 from itertools import cycle
+from scipy import stats
 import matplotlib.pyplot as plt
 
 
@@ -85,6 +86,16 @@ def diantce_to(x, y):
     return math.sqrt(_sum)
 
 
+def draw_tree(data_vector, data_class):
+
+    dist = np.zeros((len(data_vector), len(data_vector)))
+    for i in range(len(data_vector)):
+        for j in range(len(data_vector)):
+            dist[i][j] = diantce_to(data_vector[i], data_vector[j])
+
+    fig = create_dendrogram(dist, labels=data_class)
+    fig.show()
+
 def build_tree(data_vector, data_class):
     set_to_index = []
 
@@ -142,14 +153,15 @@ def build_tree(data_vector, data_class):
 
         # add new set to the list
         set_to_index[smaller_index] = new_set
-        # print(f"removed index: {larger_index} and merged with {smaller_index} with distance {min}")
+        print(f"removed index: {larger_index} and merged with {smaller_index} with distance {min}")
 
     return set_to_index[0]
 
 
-def main():
+
+def classfy():
     df = pd.read_csv('movie_data.csv', sep=';', header=0)
-    df = df.head(100)
+    df = df.head(1000)
     df.drop('imdb_id', axis=1, inplace=True)
 
     # df['original_title_length'] = df['original_title'].apply(lambda x: len(str(x).split()))
@@ -157,9 +169,9 @@ def main():
     df.dropna(subset=['release_date'], inplace=True)
     df['release_date'] = df['release_date'].apply(lambda x: dt.datetime.strptime(x, '%Y-%m-%d'))
     df['release_date'] = df['release_date'].apply(lambda x: x.timestamp())
-    # df = df[df['genres'].isin(['Comedy', 'Action', 'Drama'])]
+    df = df[df['genres'].isin(['Comedy', 'Action', 'Drama'])]
     df = df.drop_duplicates()
-
+    
     # Normalize every column except 'genres'
     for col in df.columns:
         print(col)
@@ -175,6 +187,12 @@ def main():
 
     df1_np = df1.to_numpy()
     df2_np = df2.to_numpy()
+
+    action_total = df1['genres'].value_counts()['Action']
+    drama_total = df1['genres'].value_counts()['Drama']
+    comedy_total = df1['genres'].value_counts()['Comedy']
+    
+
     root = build_tree(df2_np, df1_np)
     while True:
         try:
@@ -184,6 +202,62 @@ def main():
             continue
         if user_in < 0 or user_in > 1:
             print("ENTRE 0 y 1 DIJE PQ NO ME HACÉS CASO?")
+            continue
+
+        groups = []
+        root.get_groups_at_dist(user_in, groups)
+        print(f"------ {user_in} ------")
+        for g in groups:
+            amount_drama = 0
+            amount_comedy = 0
+            amount_action = 0
+            for entry in g:
+                if entry[0] == 'Drama':
+                    amount_drama += 1
+                elif entry[0] == 'Comedy':
+                    amount_comedy += 1
+                elif entry[0] == 'Action':
+                    amount_action += 1
+            print(f"Action: {amount_action/action_total}, Comedy: {amount_comedy/comedy_total}, Drama: {amount_drama/drama_total}")
+
+        print("------ ------ ------")
+
+def main():
+    df = pd.read_csv('movie_data.csv', sep=';', header=0)
+    df = df.head(1000)
+    df.drop('imdb_id', axis=1, inplace=True)
+
+    # df['original_title_length'] = df['original_title'].apply(lambda x: len(str(x).split()))
+    # df['overview'] = df['overview'].apply(lambda x: len(str(x).split()))
+    df.dropna(subset=['release_date'], inplace=True)
+    df['release_date'] = df['release_date'].apply(lambda x: dt.datetime.strptime(x, '%Y-%m-%d'))
+    df['release_date'] = df['release_date'].apply(lambda x: x.timestamp())
+    df = df[df['genres'].isin(['Comedy', 'Action', 'Drama'])]
+    df = df.drop_duplicates()
+    
+    # Normalize every column except 'genres'
+    for col in df.columns:
+        print(col)
+        if col not in ['genres', 'original_title', 'overview']:
+            df[col] = df[col].apply(lambda x: normalize(df[col].max(), df[col].min(), x))
+    print(df)
+
+    df1 = df[['genres', 'original_title']]
+
+    df2 = df.drop('genres', axis=1)
+    df2 = df2.drop('original_title', axis=1)
+    df2 = df2.drop('overview', axis=1)
+
+    df1_np = df1.to_numpy()
+    df2_np = df2.to_numpy()
+    #draw_tree(df2_np, df1_np)
+    root = build_tree(df2_np, df1_np)
+
+    while True:
+        try:
+            user_in = float(input("introducza valor entre 0 y 1: "))
+        except ValueError:
+            print("PONE UN FLOAT CHE NO ES TAN DIFICIL")
             continue
 
         groups = []
@@ -214,6 +288,7 @@ def test_2d():
 
 if __name__ == '__main__':
     main()
+    # classfy()
     # test_2d()
 
     # X = np.random.rand(15, 1) # 15 samples, with 12 dimensions each
