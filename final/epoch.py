@@ -17,6 +17,28 @@ class epoch:
         self.freq = None
 
 class sleepRecording:
+    """ Docstring...
+    
+        Represents a sleep recording session and provides methods to initialize
+        the session from PSG and hypnogram files, extract epochs, and print
+        information about the recording.
+
+        Attributes:
+            epochs (list): A list to store individual sleep epochs.
+            epoch_duration (int): The duration of each sleep epoch in seconds.
+            freq (float): The frequency of the recording in Hz.
+            recording_duration_sec (float): The total duration of the recording in seconds.
+            order_index (int): An index to track the order of sleep recordings.
+
+        Methods:
+            init_from_file(path_psg, path_hyp):
+                Initializes the sleep recording session from PSG and hypnogram files.
+
+            print_duration():
+                Prints the total recording duration in seconds, minutes, and hours.
+    """
+
+
     def __init__(self, epoch_duration = 30) -> None:
         self.epochs = []
         self.epoch_duration = epoch_duration
@@ -67,9 +89,11 @@ class sleepRecording:
         print(f'{self.recording_duration_sec} segundos')
         print(f'{self.recording_duration_sec/60} minutos')
         print(f'{self.recording_duration_sec/60/60} horas')
-    
-s = sleepRecording()
-s.init_from_file("data/SC4001E0-PSG.edf","data/SC4001EC-Hypnogram.edf")
-print("a")
-for x in s.epochs:
-    print(x.label)
+
+
+if __name__ == "__main__":
+    s = sleepRecording()
+    s.init_from_file("data/SC4001E0-PSG.edf","data/SC4001EC-Hypnogram.edf")
+    print("a")
+    for x in s.epochs:
+        print(x.label)
