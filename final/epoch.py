@@ -15,10 +15,11 @@ class epoch:
         self.end = None
         self.duration = None
         self.freq = None
+        self.ch_names = None
 
 class sleepRecording:
     """ Docstring...
-    
+
         Represents a sleep recording session and provides methods to initialize
         the session from PSG and hypnogram files, extract epochs, and print
         information about the recording.
@@ -85,10 +86,18 @@ class sleepRecording:
             epoch_.label = annotation_max['description']
             self.epochs.append(epoch_)
 
+            # TODO - Work further here, I want to add other variables. I will like ch_names and i would like to split the datas into its different channels. I have no idea how now but eventually, some kind of feature extraction will have to take place over these channels. 
+
+            # Other variables i guess are nice
+            # self.ch_names = psg_data.info.get('ch_names')       # maybe channel names is just nice as a reference is needed, doesn't work in current stat, need to fix
+            self.EEG_Fpz_Cz = psg_data[0]           # I try to get the different channels here but idk if it works
+
+        print('check 1')
+
     def print_duration(self):
-        print(f'{self.recording_duration_sec} segundos')
-        print(f'{self.recording_duration_sec/60} minutos')
-        print(f'{self.recording_duration_sec/60/60} horas')
+        print(f'{self.recording_duration_sec} Seconds')
+        print(f'{self.recording_duration_sec/60} Minutes')
+        print(f'{round(self.recording_duration_sec/60/60, 2)} Hours')
 
 
 if __name__ == "__main__":
