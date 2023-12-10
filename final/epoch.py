@@ -1,14 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import datetime
 import mne
-import scipy
 from mne.datasets.sleep_physionet.age import fetch_data
 
 
 class epoch:
     def __init__(self) -> None:
-        self.data = None
+        self.data = []
         self.data_time = None
         self.lable = None
         self.start = None
@@ -16,6 +14,14 @@ class epoch:
         self.duration = None
         self.freq = None
         self.ch_names = None
+
+
+    def get_channle_by_name(self, name):
+        for i in range(len(self.ch_names)):
+            if self.ch_names[i] == name:
+                return self.data[i]
+        print(f"No channle with name {name} found")
+        return None
 
 class sleepRecording:
     """ Docstring...
@@ -59,6 +65,8 @@ class sleepRecording:
         self.freq = psg_data_raw.info.get('sfreq')
         self.recording_duration_sec = psg_data.shape[1]/self.freq
 
+        recording_time = psg_data_raw['EEG Fpz-Cz'][1]
+
         for epoch_index in range(0, int(self.recording_duration_sec / self.epoch_duration)):
             epoch_ = epoch()
             epoch_.start = epoch_index * self.epoch_duration
@@ -84,15 +92,12 @@ class sleepRecording:
                     annotation_max_duration = annotation['duration']
 
             epoch_.label = annotation_max['description']
+            epoch_.ch_names = psg_data_raw.info.get('ch_names')
+            # add data to epoch
+            epoch_.data_time = recording_time[epoch_start:epoch_end]
+            for channle in range(len(psg_data)):
+                epoch_.data.append(psg_data[channle][epoch_start:epoch_end])
             self.epochs.append(epoch_)
-
-            # TODO - Work further here, I want to add other variables. I will like ch_names and i would like to split the datas into its different channels. I have no idea how now but eventually, some kind of feature extraction will have to take place over these channels. 
-
-            # Other variables i guess are nice
-            # self.ch_names = psg_data.info.get('ch_names')       # maybe channel names is just nice as a reference is needed, doesn't work in current stat, need to fix
-            self.EEG_Fpz_Cz = psg_data[0]           # I try to get the different channels here but idk if it works
-
-        print('check 1')
 
     def print_duration(self):
         print(f'{self.recording_duration_sec} Seconds')
@@ -103,6 +108,8 @@ class sleepRecording:
 if __name__ == "__main__":
     s = sleepRecording()
     s.init_from_file("data/SC4001E0-PSG.edf","data/SC4001EC-Hypnogram.edf")
-    print("a")
-    for x in s.epochs:
-        print(x.label)
+    print(f"available channles: {s.epochs[1227].ch_names}")
+    print(s.epochs[1227].label)
+    plt.plot(s.epochs[1227].data_time ,s.epochs[1227].get_channle_by_name("EEG Pz-Oz"))
+    plt.show()
+
