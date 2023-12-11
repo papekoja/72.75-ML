@@ -2,9 +2,38 @@ import matplotlib.pyplot as plt
 import numpy as np
 import mne
 from mne.datasets.sleep_physionet.age import fetch_data
-
+from filters import filter, bandpass_filter
 
 class epoch:
+
+    """ Docstring...
+
+        Represents a single epoch of a sleep recording.
+
+        Attributes:
+            data (list): A list to store the data of each channel.
+            data_time (np.array): Stores the time axis of the data.
+            lable (list): stores the lable of the epoch
+            start (float): start time of the epoch
+            end (float): end time of the epoch
+            duration (float): duration of the epoch
+            freq (float): recording frequency of the epoch
+            ch_names (list): list of channle names of the epoch
+
+        Methods:
+
+            get_channle_by_name(str):
+                returns the data of the channle with the given name
+
+            get_channle_id_by_name(str):
+                returns the id of the channle with the given name
+            
+            apply_filter(filter, list):
+                applies the given filter to the given channles
+
+
+    """
+    
     def __init__(self) -> None:
         self.data = []
         self.data_time = None
@@ -16,12 +45,22 @@ class epoch:
         self.ch_names = None
 
 
-    def get_channle_by_name(self, name):
+    def get_channle_id_by_name(self, name):
         for i in range(len(self.ch_names)):
             if self.ch_names[i] == name:
-                return self.data[i]
+                return i
         print(f"No channle with name {name} found")
         return None
+    
+    def get_channle_by_name(self, name):
+        return self.data[self.get_channle_id_by_name(name)]
+    
+    def apply_filter(self, f:filter, channel_names: list):
+        for channel_name in channel_names:
+            channle = self.get_channle_by_name(channel_name)
+            channle_id = self.get_channle_id_by_name(channel_name)
+            if channle is not None:
+                self.data[channle_id] = f.apply_filter(channle)     
 
 class sleepRecording:
     """ Docstring...
@@ -43,6 +82,13 @@ class sleepRecording:
 
             print_duration():
                 Prints the total recording duration in seconds, minutes, and hours.
+                        
+            apply_filter(filter, list):
+                applies the given filter to the given channles
+
+            get_epochs_by_label(str):
+                returns a list of epochs with the given label
+
     """
 
 
@@ -75,7 +121,7 @@ class sleepRecording:
             epoch_.freq = self.freq
 
             epoch_start = int(epoch_index * self.epoch_duration * self.freq)
-            epoch_end = int((epoch_index + 1) * self.epoch_duration * self.freq) 
+            epoch_end = int((epoch_index + 1) * self.epoch_duration * self.freq)
 
             start_datetime = psg_data_raw.info['meas_date']
             annotations_of_frame = psg_data_raw.annotations.copy().crop(
@@ -103,6 +149,20 @@ class sleepRecording:
         print(f'{self.recording_duration_sec} Seconds')
         print(f'{self.recording_duration_sec/60} Minutes')
         print(f'{round(self.recording_duration_sec/60/60, 2)} Hours')
+    
+    def apply_filter(self, f:filter, channel_names = []):
+        for epoch in self.epochs:
+            epoch.apply_filter(f, channel_names)
+
+    def get_epochs_by_label(self, label):
+        epochs = []
+        for epoch in self.epochs:
+            if epoch.label == label:
+                epochs.append(epoch)
+
+        if epochs == []:
+            print(f"No epochs with label {label} found")
+        return epochs
 
 
 if __name__ == "__main__":
@@ -110,6 +170,11 @@ if __name__ == "__main__":
     s.init_from_file("data/SC4001E0-PSG.edf","data/SC4001EC-Hypnogram.edf")
     print(f"available channles: {s.epochs[1227].ch_names}")
     print(s.epochs[1227].label)
+
+    f = bandpass_filter(bandpass_filter.wn_EEG)
+    plt.plot(s.epochs[1227].data_time ,s.epochs[1227].get_channle_by_name("EEG Pz-Oz"))
+
+    s.apply_filter(f, ["EEG Pz-Oz", "EEG Pz-Oz"])
     plt.plot(s.epochs[1227].data_time ,s.epochs[1227].get_channle_by_name("EEG Pz-Oz"))
     plt.show()
 
