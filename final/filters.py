@@ -30,7 +30,6 @@ class filter:
 class bandpass_filter(filter):
     wn_EEG = [0.2, 35]
     wn_EOG = [0.2, 10]
-    wn_EMG = [10, 90]
 
     def __init__(self, wn, fs=250) -> None:
         self.wn = wn

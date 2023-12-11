@@ -43,6 +43,7 @@ class epoch:
         self.duration = None
         self.freq = None
         self.ch_names = None
+        self.features = {}
 
 
     def get_channle_id_by_name(self, name):
@@ -60,7 +61,14 @@ class epoch:
             channle = self.get_channle_by_name(channel_name)
             channle_id = self.get_channle_id_by_name(channel_name)
             if channle is not None:
-                self.data[channle_id] = f.apply_filter(channle)     
+                self.data[channle_id] = f.apply_filter(channle)
+
+    def visualize(self):
+        fig, axs = plt.subplots(len(self.data), 1)
+        for i in range(len(self.data)):
+            axs[i].plot(self.data_time, self.data[i])
+            axs[i].set_title(self.ch_names[i])
+        plt.show()
 
 class sleepRecording:
     """ Docstring...
@@ -169,12 +177,7 @@ if __name__ == "__main__":
     s = sleepRecording()
     s.init_from_file("data/SC4001E0-PSG.edf","data/SC4001EC-Hypnogram.edf")
     print(f"available channles: {s.epochs[1227].ch_names}")
-    print(s.epochs[1227].label)
-
-    f = bandpass_filter(bandpass_filter.wn_EEG)
-    plt.plot(s.epochs[1227].data_time ,s.epochs[1227].get_channle_by_name("EEG Pz-Oz"))
-
-    s.apply_filter(f, ["EEG Pz-Oz", "EEG Pz-Oz"])
-    plt.plot(s.epochs[1227].data_time ,s.epochs[1227].get_channle_by_name("EEG Pz-Oz"))
-    plt.show()
+    s.apply_filter(bandpass_filter(bandpass_filter.wn_EEG), ["EEG Pz-Oz", "EEG Fpz-Cz"])
+    s.apply_filter(bandpass_filter(bandpass_filter.wn_EOG), ["EOG horizontal"])
+    s.epochs[1227].visualize()
 
