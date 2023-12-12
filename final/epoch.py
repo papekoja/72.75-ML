@@ -106,7 +106,8 @@ class sleepRecording:
         self.freq = None
         self.recording_duration_sec = None
         self.order_inex = 0
-    
+        self.sleep_stages = set()
+
     def init_from_file(self, path_psg, path_hyp):
         #load files
         psg_data_raw = mne.io.read_raw_edf(path_psg)
@@ -146,6 +147,7 @@ class sleepRecording:
                     annotation_max_duration = annotation['duration']
 
             epoch_.label = annotation_max['description']
+            self.sleep_stages.add(epoch_.label)
             epoch_.ch_names = psg_data_raw.info.get('ch_names')
             # add data to epoch
             epoch_.data_time = recording_time[epoch_start:epoch_end]
