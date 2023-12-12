@@ -135,4 +135,4 @@ plt.show()
 
 
 
-
+print(f"shape : {X_train.shape}")
